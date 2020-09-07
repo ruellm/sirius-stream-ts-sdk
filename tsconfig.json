@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "module": "CommonJS",
+      "outDir": "dist",
+      "watch": true,
+        "lib": ["DOM", "es2017"],
+        "types": ["node", "mocha", "chai","crypto-js", "node-rsa"]
+
+    },
+    "include": [
+        "test/**/*.ts",
+        "src/**/*.ts",
+        "./typings-custom/**/*.ts"
+    ]
+}
