@@ -23,16 +23,15 @@ export class StreamManager {
     private onStreamResult : OnStreamResult;
     private onRelayResult : OnRelayResult;
 
-    constructor() {
-        this.appMessagePrcessor = new ApplicationMessageProcessor();
-    }
+    constructor() {}
 
-    connect(entry : EntryNode) {
+    connect(entry : EntryNode, streamNamespace : number, cookie? : Buffer, subcmd? : number) {
         var context = this;
         this.client = new OnionClientConnection();
+
         this.client.connect(entry.Address, entry.Port, entry.FingerPrint,() => {
             context.streamID = generateCircId(1);
-            let cell = new StreamCreateCell(context.streamID, StreamNamespaceId.DiscoveryProtocolNamespace);
+            let cell = new StreamCreateCell(context.streamID, streamNamespace, cookie, subcmd);
             BuildAndSend(context.client.Sender, cell);
             context.registerEvents();
         });
@@ -94,6 +93,10 @@ export class StreamManager {
 
     set OnRelayResult(onRelayResult : OnRelayResult) {
         this.onRelayResult = onRelayResult;
+    }
+
+    set AppMessageProcessor(processor : ApplicationMessageProcessor) {
+        this.appMessagePrcessor = processor;
     }
 
     cleanup() {

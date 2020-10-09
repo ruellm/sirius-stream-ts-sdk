@@ -27,6 +27,10 @@ export class OnionClientConnection {
             object.handleNewConnection();
         });
 
+        this.tcpSocket.on("error", (error)=>{
+           Log(error);
+        });
+
         this.fingerPrint = fingerprint;
         this.onConnected = onConnected;
         this.moduleName = "Connection://" +host+":"+port;
@@ -59,6 +63,8 @@ export class OnionClientConnection {
                     "Fingerprint (Peer): " + handshake.getFingerPrint());
                 return;
             }
+
+            this.pinger();
 
             if(this.onConnected)
                 this.onConnected();

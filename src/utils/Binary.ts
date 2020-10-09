@@ -33,16 +33,16 @@ export function PutUint16(b : Buffer, v : number, startIndex : number = 0) {
 
 export function Uint16(b : Buffer, startIndex : number = 0) : number {
     let temp = b[startIndex + 1];        // bounds check hint to compiler;
-    return (b[startIndex + 1] & 0xFFFF)  | (b[startIndex] & 0xFFFF)<< 8;
+    return caster.uint16(b[startIndex + 1] & 0xFFFF)  | caster.uint16(b[startIndex] & 0xFFFF)<< 8;
 }
 
 export function Uint32(b : Buffer, startIndex : number = 0) : number {
     let temp = b[startIndex + 3];        // bounds check hint to compiler;
-    return caster.int32(b[startIndex+3]) | caster.int32(b[startIndex+2])<<8 | caster.int32(b[startIndex+1])<<16 | caster.int32(b[startIndex])<<24;
+    return caster.uint32(caster.uint32(b[startIndex+3]) | caster.uint32(b[startIndex+2])<<8 | caster.uint32(b[startIndex+1])<<16 | caster.uint32(b[startIndex])<<24);
 }
 
-export function Uint64(b : Buffer) : bigint {
-    var _ = b[7] // bounds check hint to compiler; see golang.org/issue/14808
-    return BigInt(b[7]) | BigInt(b[6])<<8n | BigInt(b[5])<<16n | BigInt(b[4])<<24n |
-        BigInt(b[3])<<32n | BigInt(b[2])<<40n | BigInt(b[1])<<48n | BigInt(b[0])<<56n;
+export function Uint64(b : Buffer, startIndex : number = 0) : bigint {
+    var _ = b[startIndex+7] // bounds check hint to compiler; see golang.org/issue/14808
+    return BigInt(b[startIndex+7]) | BigInt(b[startIndex+6])<<8n | BigInt(b[startIndex+5])<<16n | BigInt(b[startIndex+4])<<24n |
+        BigInt(b[startIndex+3])<<32n | BigInt(b[startIndex+2])<<40n | BigInt(b[startIndex+1])<<48n | BigInt(b[startIndex+0])<<56n;
 }

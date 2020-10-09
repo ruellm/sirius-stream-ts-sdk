@@ -57,7 +57,6 @@ export class CircuitBuilder {
             if( this.onCircuitReady)
                 this.onCircuitReady(this.circuit);
 
-            this.connection.pinger();
             return;
         }
 

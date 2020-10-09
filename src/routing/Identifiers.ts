@@ -89,3 +89,8 @@ export const RelayCommandType = Object.freeze({
         RelayRendezvousJoined2      : 8
 });
 
+// All the supported media streaming commands
+export const MediaProtocol = Object.freeze({
+        Register : 1,
+        Join : 2
+});

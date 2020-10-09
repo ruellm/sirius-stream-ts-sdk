@@ -12,10 +12,16 @@ export class StreamCreateCell extends DetailedCell implements CellFactory{
     public cookie : Buffer;
     public streamSubCommannd : number;
 
-    constructor(cirID : CircID, streamNamespace) {
+    constructor(cirID : CircID, streamNamespace, cookie? : Buffer, subcmd? : number) {
         super(defines.Command.StreamCreated);
         this.streamNamespace = streamNamespace;
         this.circID = cirID;
+
+        if(cookie) {
+            this.payLoaded = true;
+            this.cookie = cookie;
+            this.streamSubCommannd = subcmd;
+        }
     }
 
     createCell() : Cell {

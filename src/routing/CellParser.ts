@@ -116,10 +116,9 @@ export function parseStreamRelayCell(cell : Cell) {
         return new ParserResult(null, "Stream Relay cell payload too short");
     }
 
-    var payLoad = Buffer.alloc(p.length);
-    p.copy(payLoad);
+    var payload = p.slice(0, p.length);
 
-    return new ParserResult(new StreamRelayCell(cell.getCircID(), payLoad), null);
+    return new ParserResult(new StreamRelayCell(cell.getCircID(), payload), null);
 }
 
 export function parseCreatedCell(cell : Cell) {

@@ -1,13 +1,10 @@
 import {Identity, newIdentity} from "../pki/Identity";
 import {BegginingOfChainShift, Ed25519CertificateRegular, Ed25519CertificateSelfSigned} from "../defines/Certificate";
-import {certificateLifetime} from "../defines/Certificate";
 import * as forge from "node-forge";
 import {Ed25519PublicKeySize, Ed25519SignatureSize} from "../defines/Crypto";
 import {PutUint16, PutUint64, Uint16, Uint64} from "../utils/Binary";
 import {int16, int32} from "../utils/typeCaster";
-import {util} from "node-forge";
 import {Log} from "../utils/Logger";
-import {bytesToHex} from "../utils/Hex";
 import {Ed25519KeyPair} from "./KeyPair";
 import {NumberOfAuthSignaturesRequiredByClient} from "../defines/SiriusStream";
 import {RSAPayload} from "./RSAPayload";

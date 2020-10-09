@@ -9,6 +9,7 @@ import {hexToBytes} from "../utils/Hex";
 import {convertMode} from "../defines/Names";
 import {Log} from "../utils/Logger";
 import {StreamManager} from "../routing/StreamManager";
+import {StreamNamespaceId} from "../defines/SiriusStream";
 
 export class EntryNode {
     public Address : string;
@@ -53,7 +54,8 @@ export class Discovery {
         var context = this;
 
         this.streamManager = new StreamManager();
-        this.streamManager.connect(entry);
+        this.streamManager.AppMessageProcessor = new ApplicationMessageProcessor();
+        this.streamManager.connect(entry, StreamNamespaceId.DiscoveryProtocolNamespace);
         this.streamManager.OnStreamCreated = () =>{
             context.requestPullDiscovery();
         };

@@ -1,9 +1,9 @@
 {
-  "name": "sirius-strean-ts-sdk",
+  "name": "sirius-stream-sdk",
   "version": "0.0.1",
-  "description": "Proximax sirius stream sdk for typescript and javascript",
+  "description": "ProximaX sirius stream sdk for typescript and javascript",
   "license": "Apache-2.0",
-  "main": "/index.js",
+  "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "devDependencies": {
     "@types/chai": "^4.0.4",
@@ -17,7 +17,7 @@
   "scripts": {
     "pretest": "npm run build",
     "test": "mocha --ui bdd --recursive ./dist/test --timeout 90000",
-    "build": "rm -rf dist/ && tsc",
+    "build": "rm -rf dist/ && tsc && cp src/3rd-party/h264lib_opencorex/h264lib_opencore.wasm dist/src/3rd-party/h264lib_opencorex/ && cp src/3rd-party/cpp_high_resolution_clock/*.wasm dist/src/3rd-party/cpp_high_resolution_clock/ && cp src/3rd-party/libspeex/*.wasm dist/src/3rd-party/libspeex/",
     "prepublish": "npm run build"
   },
   "dependencies": {

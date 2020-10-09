@@ -2,15 +2,23 @@
     "compilerOptions": {
       "target": "ESNext",
       "module": "CommonJS",
+      "rootDir": ".",
       "outDir": "dist",
-      "watch": true,
-        "lib": ["DOM", "es2017"],
+      "allowJs": true,
+      "declaration": true,
+      // "watch": true,
+        "lib": ["es2017", "webworker"],
         "types": ["node", "mocha", "chai","crypto-js", "node-rsa"]
 
     },
     "include": [
+        "index.ts",
         "test/**/*.ts",
         "src/**/*.ts",
         "./typings-custom/**/*.ts"
+    ],
+    "exclude": [
+      "node_modules",
+      "dist"
     ]
 }
