@@ -1,11 +1,20 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 
-// handshake constants
+/**
+ * handshake constants
+ */
 export const NodeIdentityKeySize = 1024;
 
-// MaxVariableRelayDataLength defines maximum length for the Stream Relay Cell content
+/**
+ * MaxVariableRelayDataLength defines maximum length for the Stream Relay Cell content
+ */
 export const MaxVariableRelayDataLength = 65535;
 
-export const HandshakeProtoID = "psp-curve25519-sha256-01"
+export const HandshakeProtoID = "xpx-curve25519-sha256-01"
 export const HandshakeVerify  = HandshakeProtoID + ":verify"
 export const HandshakeAuthSuffix = ":server";
 export const HandshakeMac = HandshakeProtoID + ":mac";

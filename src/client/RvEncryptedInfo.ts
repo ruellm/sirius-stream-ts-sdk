@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {IsLinkSpecType, LinkSpec} from "../routing/LinkSpec";
 import {Log} from "../utils/Logger";
 import {Curve25519KeySize, FingerprintSize} from "../defines/Crypto";

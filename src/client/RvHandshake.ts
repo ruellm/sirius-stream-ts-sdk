@@ -1,13 +1,17 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Identity} from "../pki/Identity";
-import {hexToBytes, stringToAsciiByteArray} from "../utils/Hex";
-import * as def from "../defines/Onion";
+import {stringToAsciiByteArray} from "../utils/Hex";
 import {exp} from "../routing/CreateHandshake";
 import * as c from "crypto";
 import hkdf = require("futoin-hkdf");
 import {circuitKeySize} from "../routing/circuit/CircuitCrypto";
 export const 	HSHashSize            = 32;
 export const    HSStreamCipherKeySize = 16;
-export const    HSHandshakeProtoID    = "psp-hs-curve25519-sha256-01";
+export const    HSHandshakeProtoID    = "xpx-hs-curve25519-sha256-01";
 export const    HSHandshakeKey        = HSHandshakeProtoID + ":hs_key_extract";
 export const 	HSHandshakeExpand     = HSHandshakeProtoID + ":hs_key_expand";
 export const    HSHandshakeAuthSuffix = ":server";

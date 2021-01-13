@@ -1,13 +1,17 @@
-
-// LinkSpec types for EXTEND cell
-// LinkSpecType describes how to connect to the next node in a circuit.
-
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Log} from "../utils/Logger";
 import {PutUint16, Uint16} from "../utils/Binary";
 import {int16} from "../utils/typeCaster";
 import {stringToAsciiByteArray} from "../utils/Hex";
 import {FingerprintSize} from "../defines/Crypto";
 
+/**
+ * LinkSpecType describes how to connect to the next node in a circuit.
+ * */
 export const LinkSpecType = Object.freeze({
     tlsTcpIpv4 : 0,
     tlsTcpIpv6 : 1,
@@ -15,6 +19,10 @@ export const LinkSpecType = Object.freeze({
     hostName : 3
 });
 
+/**
+ * LinkSpec types for EXTEND cell
+ *
+ * */
 export class LinkSpec {
     public Type : number;
     public Spec : Buffer;
@@ -58,7 +66,7 @@ export function newLinkSpecHostname(hostname : string, port: number) : LinkSpec 
 
 export function newLinkSpecIdentity(ltype : number, id : Buffer) : LinkSpec {
     let s = new LinkSpec(ltype);
-    s.Spec = id;
+    s.Spec = id.slice();
 
     if(id.length != FingerprintSize && ltype == LinkSpecType.identity) {
         throw("Unable to create identity link spec: invalid size");

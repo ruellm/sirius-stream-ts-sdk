@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Cell, NewFixedCell, NewVariableCell} from "./Cell";
 import * as def from "../defines/SiriusStream";
 import * as caster from "../utils/typeCaster";
@@ -6,6 +11,9 @@ import * as binary from "../utils/Binary";
 import {inPlaceRelayCell, RelayCell} from "./cell/RelayCell";
 import {inPlaceStreamRelayCell, StreamRelayCell} from "./cell/StreamRelayCell";
 import {Log} from "../utils/Logger";
+
+/// The maximum length for variable length relay payload content
+export const maxVariableRelayDataLength = (1 << (8 * 2/*sizeof(uint16_t)*/)) - 1;
 
 export class ApplicationMessage {
     private data : Buffer;

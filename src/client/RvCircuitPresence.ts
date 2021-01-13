@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Identity} from "../pki/Identity";
 import {Curve25519KeyPair} from "../enc/Curve25519";
 import {
@@ -111,7 +116,6 @@ export function NewRvCircuitPresence(identity : Identity, keypair : Curve25519Ke
         return null;
     }
 
-    //TODO: make common class for AES encrption
     const key = new forge.util.ByteStringBuffer(recvEncodeKey);
     let cipher = forge.cipher.createCipher('AES-CTR', key);
     let iv = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

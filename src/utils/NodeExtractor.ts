@@ -1,3 +1,9 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
+
 import {NodePublicIdentity} from "../client/Discovery";
 import * as names from "../defines/Names";
 
@@ -57,4 +63,16 @@ export function ExtractRandomNodesWithType(source : Array<NodePublicIdentity>, t
 export function RandomFromNodeType(source : Array<NodePublicIdentity>, types: number) : NodePublicIdentity {
     let result = ExtractNodes(source, types);
     return result[Math.floor(Math.random()*result.length)];
+}
+
+export function validateNodeIdentity(nodes, identity) : boolean {
+    let authNodes = ExtractNodes(nodes, names.TypeAuthorityNode);
+    let v = authNodes.find((node)=>{
+        if( identity != node.Identity)
+            return undefined;
+
+        return node;
+    });
+
+    return (v != undefined);
 }

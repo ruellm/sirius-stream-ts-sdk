@@ -1,5 +1,7 @@
-// credit to: https://github.com/harveyconnor/curve25519-js/
-// scalar mult was not originally exposed, so code was modified to be exposed.
+/**
+ * credit to: https://github.com/harveyconnor/curve25519-js/
+ * scalar mult was not originally exposed, so code was modified to exposed the needed function.
+ * */
 let _0 = new Uint8Array(16);
 let _9 = new Uint8Array(32);
 _9[0] = 9;

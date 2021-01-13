@@ -1,7 +1,12 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {StreamRelayCell} from "./cell/StreamRelayCell";
 import {Log} from "../utils/Logger";
 import {int32, int8} from "../utils/typeCaster";
-import {Uint32} from "../utils/Binary";
+import {PutUint32, Uint32} from "../utils/Binary";
 
 export const FanoutMessage = Object.freeze({
     StreamParameters    : 0,
@@ -24,6 +29,29 @@ export class FanoutPayload {
 
     constructor() {
         this.IsFirst = false;
+    }
+
+    serialize() : Buffer {
+        let length = 1 /*message type*/ +
+            4  /*sequenceid*/ +
+            1   /*remaining parts*/ +
+            this.Data.length;
+
+        let data = Buffer.alloc(length);
+        data[0] = this.MessageType & 0xFF;
+        PutUint32(data, this.SequenceID, 1);
+
+        let remainingParts = this.RemainingParts;
+
+        if(this.IsFirst) {
+            /// MSB must be set to '1' for the first segment of a split payload
+            remainingParts |= 0x80;
+        }
+
+        data[5] = remainingParts;
+        this.Data.copy(data, 6);
+
+        return data;
     }
 }
 
@@ -51,7 +79,6 @@ export function readFanoutPayload(sc : StreamRelayCell) : FanoutPayload {
 
         fp.SequenceID = Uint32(data.slice(1));
 
-        //fp.RemainingParts = data[5];
         let numRemainingParts  = data[5];
         if((numRemainingParts & 0x80)) {
             fp.IsFirst = true;

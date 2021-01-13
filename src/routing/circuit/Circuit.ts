@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {NodePublicIdentity} from "../../client/Discovery";
 const crypto = require('crypto');
 import * as curve from "../../3rd-party/curve25519-js"
@@ -173,12 +178,12 @@ export class Circuit {
     }
 
     extendLinkSpec(linkSpecs : Array<LinkSpec>, newEndPoint : NodePublicIdentity) {
-        let naddr = linkSpecs[0].hostName();
 
+        let naddr = linkSpecs[0].hostName();
         Log("Extending circuit to the node " + naddr);
 
         if(this.hops.length == 0)
-            throw("Misssing First Hop, cannot Extend circuit");
+            throw("Missing First Hop, cannot Extend circuit");
 
         let lastHop = this.hops[this.hops.length-1];
         let lastHopNo = this.hops.length-1;
@@ -226,7 +231,6 @@ export class Circuit {
         this.sender.send(cell);
     }
 
-    //todo: temporary for testingn
     decryptForRendezvous(payload : Buffer) : Buffer {
         for (let idx = 0; idx < this.hops.length; idx++) {
             payload = this.hops[idx].backState.decrypt(payload);
@@ -395,6 +399,11 @@ export class Circuit {
 
     setRelayEvent(cmd : RelayCommand, handler : OnRelayCallbaack) {
         this.onRelay.set(cmd, handler);
+    }
+
+    shutdown() {
+        this.cleanup();
+        this.sender.close();
     }
 
     get Dispatcher() {

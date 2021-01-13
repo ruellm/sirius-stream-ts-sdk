@@ -1,4 +1,8 @@
-
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import { AsnParser } from "@peculiar/asn1-schema";
 import { Certificate } from "@peculiar/asn1-x509";
 import * as c from "crypto"

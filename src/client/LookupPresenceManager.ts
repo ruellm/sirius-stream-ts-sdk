@@ -1,11 +1,16 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {NodePublicIdentity} from "./Discovery";
-import {ExtractNodes, ExtractRandomNodesWithType} from "../utils/NodeExtractor";
+import {ExtractNodes, ExtractRandomNodesWithType, validateNodeIdentity} from "../utils/NodeExtractor";
 import * as names from "../defines/Names";
 import {CircuitBuilder} from "../routing/circuit/CircuitBuilder";
 import {Circuit} from "../routing/circuit/Circuit";
 import * as client from "../../proto/out/client";
 import * as proto from"../utils/ProtoMapping";
-import {Log} from "../utils/Logger";
+import {ErrorLog, Log} from "../utils/Logger";
 import {Identity, newIdentity} from "../pki/Identity";
 import {unmarshalSignedMessage} from "../cert/Mesage";
 import {RSAPayload} from "../cert/RSAPayload";
@@ -15,8 +20,10 @@ import {isArraySame} from "../utils/CommonHelpers";
 import * as c from "crypto";
 import {OnChannelCreated, Rendezvous} from "./Rendezvous";
 import {SignedEd25519KeyPair} from "../cert/KeyPair";
-import {RendezvousCircuit} from "./RendezvousCircuit";
 
+/**
+ * a record of a user presence node
+ */
 export class PresenceRecord {
     public Identity : Identity;
     public Fingerprint : Buffer;
@@ -24,8 +31,11 @@ export class PresenceRecord {
     public Address : Array<string>;
 }
 
+/**
+ * Looks up for a certain user in the network by looking up the presence where the user is in
+ */
 export class LookUpPresenceManager {
-    private circuitBuilder : CircuitBuilder;
+    private circuitBuilder : CircuitBuilder = null;
     private targetUserId : string;
     private nodes : Array<NodePublicIdentity>;
     private rvKey : Buffer;
@@ -33,8 +43,12 @@ export class LookUpPresenceManager {
     private identity : Identity;
     private signature : SignedEd25519KeyPair;
     private onChannelCreateSuccess : OnChannelCreated;
+    private rvCircuit : Rendezvous = null;
 
-    constructor() {
+    private readonly config : any = null;
+
+    constructor(config : any) {
+        this.config = config;
     }
 
     set Signature (signature : SignedEd25519KeyPair) {
@@ -46,9 +60,13 @@ export class LookUpPresenceManager {
     }
 
     do(userId : string, nodes : Array<NodePublicIdentity>) {
-        let routes = ExtractRandomNodesWithType(nodes, names.TypeOnionNode,3 );
+        if(!this.config)
+            throw("Config not set in LookupPresenceManager");
+
+        let routes = ExtractRandomNodesWithType(nodes, names.TypeOnionNode,this.config.hops.lookupPresence);
 
         var context = this;
+
         this.circuitBuilder = new CircuitBuilder();
         this.circuitBuilder.build(routes);
         this.circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
@@ -57,6 +75,13 @@ export class LookUpPresenceManager {
 
         this.targetUserId = userId;
         this.nodes = nodes;
+    }
+
+    shutdown() {
+        if(this.circuitBuilder)
+            this.circuitBuilder.shutdown();
+        if(this.rvCircuit)
+            this.rvCircuit.shutdown();
     }
 
     lookupPresence(circuit : Circuit){
@@ -74,7 +99,9 @@ export class LookUpPresenceManager {
 
     onLookupResult(msg : client.protocol.LookupResult) {
         if( msg.result != undefined && msg.result != client.protocol.LookupResult.resultType.success) {
-            Log("Lookup presence failure with result" + msg.result);
+            this.shutdown();
+
+            ErrorLog("Lookup presence failure with result" + msg.result);
             return;
         }
 
@@ -85,16 +112,15 @@ export class LookUpPresenceManager {
         let expiration : bigint  = BigInt(0);
         let key : Buffer;
 
-        var context = this;
         var validator = (identiy)=>{
-            return context.validateNodeIdentity(identiy);
+            return validateNodeIdentity(this.nodes, identiy);
         };
 
         for(let i = 0; i < msg.announcements.length; i++) {
             let sm = unmarshalSignedMessage(Buffer.from(msg.announcements[i]), validator);
 
             if( sm == null) {
-                Log("Unable to unmarshal the announcement");
+                ErrorLog("Unable to unmarshal the announcement");
                 continue;
             }
 
@@ -120,7 +146,7 @@ export class LookUpPresenceManager {
                 let smi = unmarshalSignedMessage(sm.Message, validator);
 
                 if(smi == null){
-                    Log("Unable to unmarshal underlying message");
+                    ErrorLog("Unable to unmarshal underlying message");
                     return;
                 }
 
@@ -137,12 +163,12 @@ export class LookUpPresenceManager {
                         target.HandshakeKey = Buffer.from(announcement.handshake);
                         key = Buffer.from(announcement.key);
                     }else{
-                        Log("Information inside the announcement does not match the certificate");
+                        ErrorLog("Information inside the announcement does not match the certificate");
                     }
                 }
             }
             else {
-                Log("Announncement node certificate is not payloaded correctly");
+                ErrorLog("Announncement node certificate is not payloaded correctly");
             }
 
             if(target != null) {
@@ -164,16 +190,16 @@ export class LookUpPresenceManager {
 
                 // create rendezvous circuit here
                 // circuit handler not set as it is created in rendezvous
-                let rvCircuit = new Rendezvous();
-                rvCircuit.Payload = cookie;
-                rvCircuit.Establish = true;
-                rvCircuit.RvKey = key;
-                rvCircuit.Identity = this.Identity;
-                rvCircuit.Signature = this.signature;
-                rvCircuit.TargetForwardPresence = targetFP;
-                rvCircuit.OtherUser = this.targetUserId;
-                rvCircuit.OnChannelCreateSucces = this.onChannelCreateSuccess;
-                rvCircuit.go(this.nodes);
+                this.rvCircuit = new Rendezvous(this.config);
+                this.rvCircuit.Payload = cookie;
+                this.rvCircuit.Establish = true;
+                this.rvCircuit.RvKey = key;
+                this.rvCircuit.Identity = this.Identity;
+                this.rvCircuit.Signature = this.signature;
+                this.rvCircuit.TargetForwardPresence = targetFP;
+                this.rvCircuit.OtherUser = this.targetUserId;
+                this.rvCircuit.OnChannelCreateSucces = this.onChannelCreateSuccess;
+                this.rvCircuit.go(this.nodes);
             }
         }
     }
@@ -188,18 +214,5 @@ export class LookUpPresenceManager {
 
     get Identity() {
         return this.identity;
-    }
-
-    //TODO: cleanup and make common, used in Authetincation class as well
-    validateNodeIdentity(identity) : boolean {
-        let authNodes = ExtractNodes(this.nodes, names.TypeAuthorityNode);
-        let v = authNodes.find((node)=>{
-            if( identity != node.Identity)
-                return undefined;
-
-            return node;
-        });
-
-        return (v != undefined);
     }
 }

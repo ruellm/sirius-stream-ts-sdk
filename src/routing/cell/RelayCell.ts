@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import * as caster from "../../utils/typeCaster";
 import * as binary from "../../utils/Binary";
 import {MaxPayloadLength} from "../Identifiers";
@@ -5,6 +10,8 @@ import {int32, int8} from "../../utils/typeCaster";
 import {Log} from "../../utils/Logger";
 import {CircID, DetailedCell} from "../Cell";
 import {Command } from "../Identifiers";
+import {Uint16} from "../../utils/Binary";
+import {start} from "repl";
 export type RelayCommand = number;
 
 export class RelayCell extends DetailedCell{
@@ -76,6 +83,24 @@ export class RelayCell extends DetailedCell{
 
     isVariableLen() : boolean {
         return false;
+    }
+
+    extendPayloadSize() {
+        const offset = 7;
+        return Uint16(this.data, offset);
+    }
+
+    extendPayload() : Buffer {
+        const startIndex = 9;
+        const dataSize = this.data.length;
+        let payload = null;
+        if(dataSize >= startIndex) {
+            let payloadSize = this.extendPayloadSize();
+            let offset = startIndex;
+            payload = this.data.slice(offset, offset + payloadSize);
+        }
+
+        return payload;
     }
 }
 

@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {TLSSocket} from "tls";
 import * as cell from "./Cell";
 import {IsCommand, MaxPayloadLength} from "./Identifiers";
@@ -8,7 +13,6 @@ import {Cell} from "./Cell";
 import {Dispatcher} from "./Dispatcher";
 import {Log} from "../utils/Logger";
 import {int16, int32} from "../utils/typeCaster";
-import {start} from "repl";
 
 export class CellReceiver {
     private tlsConn: TLSSocket;

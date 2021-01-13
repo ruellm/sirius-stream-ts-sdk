@@ -11,21 +11,35 @@ import {Log} from "../utils/Logger";
 
 export class ForwardPresence {
     private request : client.protocol.ForwardPresenceRequest;
-    constructor() {}
+
+    private readonly config : any = null;
+    private circuitBuilder : CircuitBuilder = null;
+
+    constructor(config : any) {
+        this.config = config;
+    }
 
     do(req : client.protocol.ForwardPresenceRequest, nodes : Array<NodePublicIdentity>, target : NodePublicIdentity = null) {
 
-        let routes = ExtractRandomNodesWithType(nodes, names.TypeOnionNode, 2);
+        if(!this.config)
+            throw("Config not set Forward Presence");
+
+        let routes = ExtractRandomNodesWithType(nodes, names.TypeOnionNode, this.config.hops.forwardPresence);
         routes.push(target);
 
         var context = this;
-        let circuitBuilder = new CircuitBuilder();
-        circuitBuilder.build(routes);
-        circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
+        this.circuitBuilder = new CircuitBuilder();
+        this.circuitBuilder.build(routes);
+        this.circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
             context.onCircuitCreated(circuit);
         };
 
         this.request = req;
+    }
+
+    shutdown() {
+        if(this.circuitBuilder)
+            this.circuitBuilder.shutdown();
     }
 
     onCircuitCreated(circuit : Circuit) {

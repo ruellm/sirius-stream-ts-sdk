@@ -1,5 +1,12 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 
-// Defined AuthMethod values.
+/**
+ * Defined AuthMethod values.
+ * */
 export const AuthMethod = Object.freeze({
         RSASHA256TLSSecret : 1,
         AllowBypass        : 2
@@ -28,7 +35,9 @@ export const CertType = Object.freeze({
         Auth     : 3
 });
 
-// MaxPayloadLength defines maximum fixed cell size.
+/**
+ *  MaxPayloadLength defines maximum fixed cell size.
+ * */
 export const MaxPayloadLength = 509
 
 export function IsCommand(command : number) {
@@ -74,11 +83,16 @@ export const StreamError = Object.freeze({
         Duplicate    : 4
 });
 
-// HandshakeType is the only supported handshake type for us
+/**
+ * HandshakeType is the only supported handshake type for us
+ * */
 export const HandshakeTypeDefault = 1;
 
-// All the supported relay commands
+/**
+ * All the supported relay commands
+ * */
 export const RelayCommandType = Object.freeze({
+        RelayUserData               : 0,
         RelayExtend                 : 1,
         RelayExtended               : 2,
         RelayEscape                 : 3,
@@ -89,7 +103,9 @@ export const RelayCommandType = Object.freeze({
         RelayRendezvousJoined2      : 8
 });
 
-// All the supported media streaming commands
+/**
+ * All the supported media streaming commands
+ * */
 export const MediaProtocol = Object.freeze({
         Register : 1,
         Join : 2

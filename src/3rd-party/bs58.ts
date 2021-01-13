@@ -1,4 +1,6 @@
-// https://github.com/islishude/bs58js
+/**
+ * ported with slight modifications from https://github.com/islishude/bs58js
+ * */
 const table = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const zero = 0n;
 const base = 58n;

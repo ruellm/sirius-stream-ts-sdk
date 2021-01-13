@@ -55,9 +55,6 @@ export namespace protocol {
                 this.result = data.result;
                 this.signature = data.signature;
             }
-
-            // modified : set default value
-            this.result = AuthRequestCertificateResult.requestResult.success;
         }
         get result(): AuthRequestCertificateResult.requestResult | undefined {
             return pb_1.Message.getFieldWithDefault(this, 1, undefined) as AuthRequestCertificateResult.requestResult | undefined;

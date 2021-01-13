@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {NodePublicIdentity} from "../../client/Discovery";
 import {OnionClientConnection} from "../../client/OnionClientConnection";
 import {extractHostAndIP} from "../../utils/AddressExtractor";
@@ -48,6 +53,11 @@ export class CircuitBuilder {
         }
     }
 
+    shutdown() {
+        if(this.connection)
+            this.connection.disconnect();
+    }
+
     completeOrExtend() {
         const nextNodeIndex = ++this.currIndex;
         const nodesSize = this.nodes.length;
@@ -76,6 +86,6 @@ export class CircuitBuilder {
     }
 
     close() {
-        this.connection.cleanup();
+        this.connection.disconnect();
     }
 }

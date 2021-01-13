@@ -1,23 +1,23 @@
 {
-  "name": "sirius-stream-sdk",
-  "version": "0.0.1",
-  "description": "ProximaX sirius stream sdk for typescript and javascript",
+  "name": "tsjs-xpx-stream-sdk",
+  "version": "0.1.1",
+  "description": "ProximaX Sirius Stream sdk for typescript and javascript",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "devDependencies": {
     "@types/chai": "^4.0.4",
-    "@types/mocha": "^2.2.44",
+    "@types/mocha": "^8.0.2",
     "@types/node": "^14.0.27",
     "chai": "^4.1.2",
-    "mocha": "^4.0.1",
+    "mocha": "^8.0.2",
     "ts-node": "^5.0.1",
     "typescript": "^3.9.7"
   },
   "scripts": {
     "pretest": "npm run build",
     "test": "mocha --ui bdd --recursive ./dist/test --timeout 90000",
-    "build": "rm -rf dist/ && tsc && cp src/3rd-party/h264lib_opencorex/h264lib_opencore.wasm dist/src/3rd-party/h264lib_opencorex/ && cp src/3rd-party/cpp_high_resolution_clock/*.wasm dist/src/3rd-party/cpp_high_resolution_clock/ && cp src/3rd-party/libspeex/*.wasm dist/src/3rd-party/libspeex/",
+    "build": "tsc",
     "prepublish": "npm run build"
   },
   "dependencies": {
@@ -27,13 +27,16 @@
     "@types/mocha": "^8.0.2",
     "@types/node-forge": "^0.9.5",
     "@types/node-rsa": "^1.0.0",
+    "express": "^4.17.1",
     "futoin-hkdf": "^1.3.2",
     "google-protobuf": "^3.13.0",
     "i": "^0.3.6",
     "js-crypto-rsa": "^0.6.3",
-    "node-forge": "^0.9.1",
+    "node-forge": "^0.10.0",
     "node-rsa": "^1.1.1",
-    "protoc-gen-ts": "^0.2.0"
+    "protoc-gen-ts": "^0.2.0",
+    "unpipe": "^1.0.0",
+    "ws": "^7.4.1"
   },
   "peerDependencies": {},
   "directories": {

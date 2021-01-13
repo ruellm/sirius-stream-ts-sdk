@@ -1,19 +1,31 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {EntryNode} from "../client/Discovery";
 import {OnionClientConnection} from "../client/OnionClientConnection";
 import {ApplicationMessageProcessor} from "./ApplicationMessage";
 import {generateCircId} from "./circuit/CircuitCrypto";
 import {StreamCreateCell} from "./cell/StreamCreateCell";
-import {StreamNamespaceId} from "../defines/SiriusStream";
-import {BuildAndSend} from "./Cell";
+import {BuildAndSend, Cell} from "./Cell";
 import * as defines from "./Identifiers";
 import {ParserResult} from "./CellParser";
 import {Log} from "../utils/Logger";
 import {StreamDestroyCell} from "./cell/StreamDestroyCell";
 import {StreamRelayCell} from "./cell/StreamRelayCell";
 
+/**
+ * Callback types definition
+ * OnStreamResult : when result is available after a stream call
+ * OnRelayResult : when relay data is available
+ */
 export type OnStreamResult = (data : Buffer) => void;
 export type OnRelayResult = (StreamRelayCell) => void;
 
+/**
+ * Connects to a network stream channel and route events
+ * */
 export class StreamManager {
     private streamID : number;
     private client : OnionClientConnection;
@@ -25,6 +37,10 @@ export class StreamManager {
 
     constructor() {}
 
+    get StreamID() {
+        return this.streamID;
+    }
+
     connect(entry : EntryNode, streamNamespace : number, cookie? : Buffer, subcmd? : number) {
         var context = this;
         this.client = new OnionClientConnection();
@@ -35,6 +51,11 @@ export class StreamManager {
             BuildAndSend(context.client.Sender, cell);
             context.registerEvents();
         });
+    }
+
+    shutdown() {
+        if(this.client)
+            this.client.disconnect();
     }
 
     registerEvents() {
@@ -61,6 +82,16 @@ export class StreamManager {
             var cell = msgs[i];
             cell.setCircID(this.streamID);
             this.client.Sender.send(cell);
+        }
+    }
+
+    send(cellRaw) {
+        this.client.Sender.send(cellRaw);
+    }
+
+    sendList(fpCells : Array<Cell>) {
+        for(let i = 0; i < fpCells.length; i++) {
+            this.send(fpCells[i]);
         }
     }
 

@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import * as proto from "google-protobuf";
 import {PutUint16, Uint16} from "./Binary";
 import * as caster from "./typeCaster";
@@ -5,11 +10,11 @@ import * as discovery from "../../proto/out/discovery";
 import {Log} from "../utils/Logger";
 import * as auth from "../../proto/out/auth";
 import * as client from "../../proto/out/client";
+
 // ID defines the type for packet id
 export type MessageId = number;
 
 // Various message types
-
 export const AnnouncePresenceMessage           :   MessageId = 1;
 export const AnnouncementResultMessage         :   MessageId = 2;
 export const LookupPresenceMessage             :   MessageId = 3;

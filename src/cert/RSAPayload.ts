@@ -1,15 +1,14 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Log} from "../utils/Logger";
 import {Uint16} from "../utils/Binary";
 import {fingerprintCertificateDER} from "../enc/Tls";
 import {NodeIdentityKeySize} from "../defines/Onion";
-import { AsnParser } from "@peculiar/asn1-schema";
-import { Certificate } from "@peculiar/asn1-x509";
-import * as c from "crypto";
-import * as forge from "node-forge";
-const NodeRSA = require('node-rsa');
-import rsa from 'js-crypto-rsa'; // for npm
 // RSAPayloadCode is a code byte for RSA payload
-const RSAPayloadCode = 0xAA
+const RSAPayloadCode = 0xAA;
 
 export class RSAPayload {
     public Certificate : Buffer;

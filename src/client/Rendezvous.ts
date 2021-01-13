@@ -13,7 +13,7 @@ import {RVCircuitInitiator} from "./RVCircuitInitiator";
 import {Identity} from "../pki/Identity";
 import {EncryptedInfoPayload} from "./RvEncryptedInfo";
 import {extractHostAndIP} from "../utils/AddressExtractor";
-import {LinkSpec, newLinkSpecHostname} from "../routing/LinkSpec";
+import {LinkSpec, LinkSpecType, newLinkSpecHostname, newLinkSpecIdentity} from "../routing/LinkSpec";
 import {newSignedMessage} from "../cert/Mesage";
 import {SignedEd25519KeyPair} from "../cert/KeyPair";
 import * as client from "../../proto/out/client";
@@ -46,8 +46,13 @@ export class Rendezvous {
     private onInvitedChannelSuccess : OnChannelCreated;
     private otherUser : string;
     private circuitHandler : RvCircuitHandler;
+    private circuitBuilder : CircuitBuilder = null;
 
-    constructor() {
+    private readonly config : any = null;
+    private forwarder : ForwardPresence = null;
+
+    constructor(config : any) {
+        this.config = config;
     }
 
     set RvKey(key : Buffer) {
@@ -103,11 +108,18 @@ export class Rendezvous {
         }
 
         var context = this;
-        let circuitBuilder = new CircuitBuilder();
-        circuitBuilder.build(this.routes, (target)? target.linkSpecs : null);
-        circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
+        this.circuitBuilder = new CircuitBuilder();
+        this.circuitBuilder.build(this.routes, (target)? target.linkSpecs : null);
+        this.circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
             context.onCircuitCreated(circuit);
         };
+    }
+
+    shutdown() {
+        if(this.circuitBuilder)
+            this.circuitBuilder.shutdown();
+        if(this.forwarder)
+            this.forwarder.shutdown();
     }
 
     onCircuitCreated(circuit : Circuit) {
@@ -209,9 +221,10 @@ export class Rendezvous {
         // to resolve the DNS name before sending it towards node for both this payload and EXTEND cell
         // thus retire the hostname linkspec entirely. Remember - hostname linkspec is non-standard
         // and we introduced it ONLY because we needed it for Docker local setup to work
-        var host = extractHostAndIP(lastNode.OnionAddress[0]);
-        epayload.linkSpecs = new Array<LinkSpec>(1);
-        epayload.linkSpecs[0] = newLinkSpecHostname(host.host, host.port);
+        var host = extractHostAndIP(this.routes[2].OnionAddress[0]);
+        epayload.linkSpecs = new Array<LinkSpec>(2);
+        epayload.linkSpecs[0] = newLinkSpecIdentity(LinkSpecType.identity, epayload.Fingerprint);
+        epayload.linkSpecs[1] = newLinkSpecHostname(host.host, host.port);
 
         let ep = epayload.marshal();
         if(ep == null) {
@@ -228,7 +241,10 @@ export class Rendezvous {
         let request = initiator.generateIntroduceRequest(req.marshal());
         let fpr = new client.protocol.ForwardPresenceRequest({request: request});
 
-        let forwarder = new ForwardPresence();
-        forwarder.do(fpr, this.nodes, lastNode);
+        if(this.forwarder)
+            this.forwarder.shutdown();
+
+        this.forwarder = new ForwardPresence(this.config);
+        this.forwarder.do(fpr, this.nodes, lastNode);
     }
 }

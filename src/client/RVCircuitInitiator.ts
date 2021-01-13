@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Identity} from "../pki/Identity";
 import {Curve25519KeyPair} from "../enc/Curve25519";
 import {
@@ -61,7 +66,6 @@ export class RVCircuitInitiator extends RvCircuitHandler{
         let encodedKey = d.slice(0, HSStreamCipherKeySize);
         let macKey = d.slice(HSStreamCipherKeySize, HSStreamCipherKeySize + HSHashSize);
 
-        //TODO: make common class for AES encrption
         const key = new forge.util.ByteStringBuffer(encodedKey);
         let cipher = forge.cipher.createCipher('AES-CTR', key);
         let iv = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

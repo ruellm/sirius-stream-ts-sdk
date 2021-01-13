@@ -1,9 +1,13 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {CellFactory} from "./CellFactory";
 import {CellSender} from "./CellSender";
 import * as binary from "../utils/Binary";
 import * as defines from "./Identifiers"
 import * as cmd from "./Command"
-import {Command} from "./Command";
 
 export type CircID = number;
 

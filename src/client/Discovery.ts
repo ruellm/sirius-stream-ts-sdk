@@ -1,5 +1,9 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import * as proto from "google-protobuf";
-import {OnionClientConnection} from "./OnionClientConnection";
 import * as schema from "../../proto/out/discovery"
 import * as s from "../defines/SiriusStream";
 import * as protomap from "../utils/ProtoMapping";
@@ -11,6 +15,9 @@ import {Log} from "../utils/Logger";
 import {StreamManager} from "../routing/StreamManager";
 import {StreamNamespaceId} from "../defines/SiriusStream";
 
+/**
+ * Represents a bootstrap node in a nework
+ */
 export class EntryNode {
     public Address : string;
     public Port : number;
@@ -23,7 +30,9 @@ export class EntryNode {
     }
 }
 
-// NodePublicIdentity defines information about the node available from the discovery service
+/**
+ * NodePublicIdentity defines information about the node available from the discovery service
+ */
 export const NodeTypeHost = 0;
 export const NodeTypeLinkSpec = 1;
 
@@ -42,6 +51,9 @@ export class NodePublicIdentity {
 
 type OnDiscoveryChanged = () => void;
 
+/**
+ * Takes care of discovery of nodes in the network by connecting to an entry/bootstrap nodes and pull information
+ */
 export class Discovery {
     private streamManager : StreamManager;
     private cachedList : Array<NodePublicIdentity>;
@@ -59,6 +71,10 @@ export class Discovery {
         this.streamManager.OnStreamCreated = () =>{
             context.requestPullDiscovery();
         };
+    }
+
+    shutdown() {
+        this.streamManager.shutdown();
     }
 
     requestPullDiscovery() {

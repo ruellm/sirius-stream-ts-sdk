@@ -1,4 +1,9 @@
-import {Cell, DetailedCell} from "./Cell";
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
+import {Cell} from "./Cell";
 import * as cmd from "./Command";
 import * as defines from "./Identifiers";
 import * as binary from "../utils/Binary";
@@ -11,7 +16,6 @@ import {StreamCreatedCell} from "./cell/StreamCreateCell";
 import * as onion from "../defines/Onion";
 import {StreamRelayCell} from "./cell/StreamRelayCell";
 import {CreatedCell} from "./cell/CreatedCell";
-import {RelayCell} from "./cell/RelayCell";
 
 export class  ParserResult {
     public cell;

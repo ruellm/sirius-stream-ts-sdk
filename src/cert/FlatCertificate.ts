@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Identity, newIdentity} from "../pki/Identity";
 import {BegginingOfChainShift, Ed25519CertificateRegular, Ed25519CertificateSelfSigned} from "../defines/Certificate";
 import * as forge from "node-forge";
@@ -417,7 +422,7 @@ export class FlatCertificate {
 
     readPayLoad(payload : RSAPayload) : boolean{
         if(this.Payload == null) {
-            Log("Error Empy payload");
+            Log("Error Empty payload");
             return false;
         }
 

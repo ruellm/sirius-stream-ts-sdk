@@ -1,10 +1,14 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {Identity, newIdentity} from "../pki/Identity";
 import {Curve25519KeySize} from "../defines/Crypto";
 import {PutUint16, Uint16} from "../utils/Binary";
 import {int16} from "../utils/typeCaster";
-import {hexToBytes, stringToAsciiByteArray} from "../utils/Hex";
+import {stringToAsciiByteArray} from "../utils/Hex";
 import * as c from "crypto";
-import * as def from "../defines/Onion";
 import {Log} from "../utils/Logger";
 import {isArraySame} from "../utils/CommonHelpers";
 

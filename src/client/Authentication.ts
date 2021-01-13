@@ -1,5 +1,15 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {NodePublicIdentity} from "./Discovery";
-import {ExtractNodes, ExtractRandomNodesWithType, RandomFromNodeType} from "../utils/NodeExtractor";
+import {
+    ExtractNodes,
+    ExtractRandomNodesWithType,
+    RandomFromNodeType,
+    validateNodeIdentity
+} from "../utils/NodeExtractor";
 import * as names from "../defines/Names";
 import {CircuitBuilder} from "../routing/circuit/CircuitBuilder";
 import * as forge from "node-forge";
@@ -11,25 +21,34 @@ import {stringToAsciiByteArray} from "../utils/Hex";
 import {AuthRequestCertificateResultMessage, marshal} from "../utils/ProtoMapping";
 import {protocol} from "../../proto/out/auth";
 import AuthRequestCertificate = protocol.AuthRequestCertificate;
-import {Log} from "../utils/Logger";
+import {ErrorLog, Log} from "../utils/Logger";
 import {Circuit} from "../routing/circuit/Circuit";
 import {buildIdentity, IdentityType} from "../pki/Identity";
 import * as auth from "../../proto/out/auth";
 
 export type OnRegistrationComplete = (SignedEd25519KeyPair) => void;
 
+/**
+ * Class for authentication (register) of a client to the network
+ */
 export class Authentication {
     private nodes : Array<NodePublicIdentity>;
 
     private CachedCertificate : SignedEd25519KeyPair;
     private onRegistrationComplete : Array<OnRegistrationComplete>;
+
     private circuitCache : Circuit;
     private circuitBuilder : CircuitBuilder;
+    private context : any = null;
 
-    constructor() {
+    private readonly config : any = null;
 
+    constructor(conf : any) {
         this.onRegistrationComplete = new Array<OnRegistrationComplete>();
         this.CachedCertificate = null;
+
+        this.config = conf;
+        this.context = this;
     }
 
     set Nodes (nodes : Array<NodePublicIdentity>) {
@@ -37,6 +56,10 @@ export class Authentication {
     }
 
     registerUser() {
+
+        if(!this.config)
+            throw("Config not set in Authentiacation routine");
+
         var context = this;
 
         // build 3 nodes with authority at the endpoint
@@ -56,14 +79,22 @@ export class Authentication {
 
         } while(redo);
 
-        let nodes = ExtractRandomNodesWithType(this.nodes, names.TypeOnionNode,2 );
+        let nodes = ExtractRandomNodesWithType(this.nodes, names.TypeOnionNode,this.config.hops.authenication );
         nodes.push(endPoint);
+
+        if(this.circuitBuilder)
+            this.circuitBuilder.shutdown();
 
         this.circuitBuilder = new CircuitBuilder();
         this.circuitBuilder.build(nodes);
         this.circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
             context.renewCertificate(circuit);
         };
+    }
+
+    shutdown() {
+        if(this.context.circuitBuilder)
+            this.context.circuitBuilder.shutdown();
     }
 
     renewCertificate(circuit : Circuit) {
@@ -75,7 +106,7 @@ export class Authentication {
             let signingKey = ed25519.generateKeyPair();
 
             // @ts-ignore
-            let pkiIdentity = buildIdentity("peerstream", "client", IdentityType.Account, masterKey.publicKey);
+            let pkiIdentity = buildIdentity("sirius", "client", IdentityType.Account, masterKey.publicKey);
 
             // @ts-ignore
             let stub = newFlatCertificate(signingKey.publicKey, pkiIdentity, certificateLifetime, masterKey.privateKey);
@@ -89,7 +120,7 @@ export class Authentication {
             this.CachedCertificate = kp;
         }
 
-        let msgb = Buffer.from(stringToAsciiByteArray("psp-auth-1.0"));
+        let msgb = Buffer.from(stringToAsciiByteArray("xpx-auth-1.0"));
         let sm = newSignedMessage(msgb, this.CachedCertificate);
         let authMsg = new AuthRequestCertificate();
         authMsg.certificateStub = sm.marshal();
@@ -113,15 +144,17 @@ export class Authentication {
         // in the generatedd files, but its not re-set during deserialization and remain 0.
         // Generated protobuf file (auth.ts) was modified to fix/set default value similar to other language.
         if( msg.result != undefined && msg.result != auth.protocol.AuthRequestCertificateResult.requestResult.success) {
-            Log("Request Authentication of Certificate failed with result " + msg.result);
+            ErrorLog("Request Authentication of Certificate failed with result " + msg.result);
             return;
         }
 
         addSignature(this.CachedCertificate.Certificate, Buffer.from(msg.signature), true);
+
         var context = this;
         if(!this.CachedCertificate.Certificate.validate((identiy)=>{
-            return context.validateNodeIdentity(identiy);})) {
-            this.registerUser();
+            return validateNodeIdentity(this.nodes, identiy);
+            })) {
+            context.registerUser();
             return;
         }
 
@@ -138,15 +171,4 @@ export class Authentication {
         this.onRegistrationComplete.push(callback);
     }
 
-    validateNodeIdentity(identity) : boolean {
-        let authNodes = ExtractNodes(this.nodes, names.TypeAuthorityNode);
-        let v = authNodes.find((node)=>{
-            if( identity != node.Identity)
-                return undefined;
-
-            return node;
-        });
-
-        return (v != undefined);
-    }
 }

@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {FlatCertificate} from "./FlatCertificate";
 import {SignedEd25519KeyPair} from "./KeyPair";
 import {Ed25519CertificateRegular, Ed25519CertificateSelfSigned, MaximumMessageSize} from "../defines/Certificate";

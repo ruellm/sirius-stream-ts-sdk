@@ -1,3 +1,8 @@
+/**
+ *** Copyright 2020 ProximaX Limited. All rights reserved.
+ *** Use of this source code is governed by the Apache 2.0
+ *** license that can be found in the LICENSE file.
+ **/
 import {NodePublicIdentity} from "./Discovery";
 import {SignedEd25519KeyPair} from "../cert/KeyPair";
 import {CircuitBuilder} from "../routing/circuit/CircuitBuilder";
@@ -9,19 +14,23 @@ import {Curve25519SeedSize} from "../defines/Crypto";
 import * as curve from "../3rd-party/curve25519-js";
 import {AnnouncementResultMessage, ForwardPresenceRequestMessage, marshal} from "../utils/ProtoMapping";
 import {newSignedMessage, unmarshalSignedMessage} from "../cert/Mesage";
-import {Log} from "../utils/Logger";
+import {ErrorLog, Log} from "../utils/Logger";
 import {NewRvCircuitPresence, RvCircuitPresence} from "./RvCircuitPresence";
 import {Curve25519KeyPair} from "../enc/Curve25519";
 import {newEncryptedInfoPayload} from "./RvEncryptedInfo";
 import {OnChannelCreated, Rendezvous} from "./Rendezvous";
 import {HSHashSize} from "./RvHandshake";
-import {NewFixedCell} from "../routing/Cell";
-import * as defines from "../routing/Identifiers";
 const crypto = require('crypto');
 
-type OnAnnouncePresenceCallback = () => void;
+/**
+ * Callback types definition
+ * OnAnnouncePresenceCallback : callback when presence succesfully announced passing user's token
+ */
+type OnAnnouncePresenceCallback = (string) => void;
 
-//TODO: annnounce presence can be renamed to handle all presence as Presence manager
+/**
+ * Class for announcing presence the the network (login)
+ */
 export class AnnouncePresence {
     private circuitBuilder : CircuitBuilder;
     private nodes : Array<NodePublicIdentity>;
@@ -34,10 +43,19 @@ export class AnnouncePresence {
     private circuit : Circuit;
     public updating : boolean;
 
-    private onInvitedToChannel : OnChannelCreated;
+    private userIdentity : string;
 
-    constructor() {
+    private onInvitedToChannel : OnChannelCreated;
+    private readonly config : any = null;
+    private rvCircuit : Rendezvous = null;
+    private context : any = null;
+    private updatePinger : any = null;
+    private announced : boolean = false;
+
+    constructor(config : any) {
         this.updating = false;
+        this.config = config;
+        this.context = this;
     }
 
     set OnInvitedToChannel(callback : OnChannelCreated) {
@@ -45,22 +63,46 @@ export class AnnouncePresence {
     }
 
     loginUser(userData : SignedEd25519KeyPair) {
+        if (!this.config)
+            throw("Config not set in Announce Presence");
+
         var context = this;
-        // build random 3 nodes
-        this.routes = ExtractRandomNodesWithType(this.nodes, names.TypeOnionNode,3 );
+
+        // build random random nodes from hop count in config
+        this.routes = ExtractRandomNodesWithType(this.nodes, names.TypeOnionNode, this.config.hops.announcePresence);
 
         let presenceKey = curve.generateKeyPair(crypto.randomBytes(Curve25519SeedSize));
         this.presenceKey = new Curve25519KeyPair(Buffer.from(presenceKey.private),
             Buffer.from(presenceKey.public));
 
+        if(this.circuitBuilder)
+            this.circuitBuilder.shutdown();
+
         this.circuitBuilder = new CircuitBuilder();
         this.circuitBuilder.build(this.routes);
-        this.circuitBuilder.OnCircuitReady = (circuit : Circuit) => {
+        this.circuitBuilder.OnCircuitReady = (circuit: Circuit) => {
             context.circuit = circuit;
             context.announce();
         };
 
         this.userData = userData;
+
+        this.updater();
+    }
+
+    shutdown() {
+        if(this.circuitBuilder)
+            this.circuitBuilder.shutdown();
+        if(this.rvCircuit)
+            this.rvCircuit.shutdown();
+        if(this.circuit)
+            this.circuit.cleanup();
+
+        this.circuitBuilder = null;
+        this.rvCircuit = null;
+        this.circuit = null;
+
+        clearInterval(this.context.updatePinger);
     }
 
     announce() {
@@ -95,6 +137,8 @@ export class AnnouncePresence {
         if(packet == null)
             throw("Cannot proto deserialize Announce Presence");
 
+        this.userIdentity = req.identity;
+
         if(!this.updating)
             Log("Announcing Presence for "+req.identity +"...");
         else
@@ -115,15 +159,18 @@ export class AnnouncePresence {
 
     onAnnouncePresenceResult(msg : client.protocol.AnnouncementResult) {
         if( msg.result != undefined && msg.result != client.protocol.AnnouncementResult.resultType.success) {
-            Log("Announcement presence failure " + msg.result);
+            this.shutdown();
+
+            ErrorLog("Announcement presence failure " + msg.result);
+
             return;
         }
 
         if(!this.updating) {
             if(this.onAnnouncePresenceSucceed)
-                this.onAnnouncePresenceSucceed();
+                this.onAnnouncePresenceSucceed(this.userIdentity);
 
-            this.updater();
+            this.announced = true;
 
             Log("Announcing Presence success!");
 
@@ -134,9 +181,18 @@ export class AnnouncePresence {
 
     updater() {
         var object = this;
-        let ping = setInterval(function () {
+        this.updatePinger = setInterval(function () {
+            if (!object.announced)
+                return;
+
+            if(object.circuit == null) {
+                clearInterval(object.updatePinger);
+                return;
+            }
+
             object.updating = true;
             object.announce();
+
         }, 30 * 1000);
     }
 
@@ -164,7 +220,6 @@ export class AnnouncePresence {
         Log("Extending rendezvous request from user " + sm.Certificate.PKIAccountID.Id);
         parser.Sender = sm.Certificate.PKIAccountID;
 
-        //todo : cleanup this later
         this.parser = parser;
 
         let auth = parser.createRVAuth();
@@ -172,20 +227,20 @@ export class AnnouncePresence {
         payload.Cookie.copy(p);
         auth.copy(p, HSHashSize);
 
-        let rvCircuit = new Rendezvous();
-        rvCircuit.Payload = p;
-        rvCircuit.Establish = false;
-        rvCircuit.go(this.nodes, payload);
-        rvCircuit.OtherUser = sm.Certificate.PKIAccountID.Id;
-        rvCircuit.CircuitHandler = parser;
-        rvCircuit.OnInvitedChannelSuccess = this.onInvitedToChannel;
+        this.rvCircuit = new Rendezvous(this.config);
+        this.rvCircuit.Payload = p;
+        this.rvCircuit.Establish = false;
+        this.rvCircuit.go(this.nodes, payload);
+        this.rvCircuit.OtherUser = sm.Certificate.PKIAccountID.Id;
+        this.rvCircuit.CircuitHandler = parser;
+        this.rvCircuit.OnInvitedChannelSuccess = this.onInvitedToChannel;
     }
 
     set Nodes (nodes : Array<NodePublicIdentity>) {
         this.nodes = nodes;
     }
 
-    set OnAnnouncePresenceSucees(callback : OnAnnouncePresenceCallback) {
+    set OnAnnouncePresenceSucess(callback : OnAnnouncePresenceCallback) {
         this.onAnnouncePresenceSucceed = callback;
     }
 
